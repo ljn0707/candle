@@ -1,0 +1,32 @@
+name: Build Whisper for Panther X2 (ARM64)
+
+on:
+  workflow_dispatch: # 允许你手动点击按钮触发构建
+
+jobs:
+  build:
+    name: Build ARM64 Binary
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Install Rust Toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-unknown-linux-gnu # 这里的架构对应你的 RK3566
+
+      - name: Install Cross
+        # 使用 cross 工具，它会自动处理复杂的交叉编译依赖（比如 OpenSSL 和 C 库）
+        run: cargo install cross
+
+      - name: Build Whisper Example
+        # 核心命令：开启 release 优化，指定目标架构
+        run: cross build --example whisper --release --target aarch64-unknown-linux-gnu
+
+      - name: Upload Artifact
+        # 把编译好的文件打包上传，供你下载
+        uses: actions/upload-artifact@v4
+        with:
+          name: whisper-arm64
+          path: target/aarch64-unknown-linux-gnu/release/examples/whisper
